@@ -1,135 +1,185 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
 import { useStore, formatPrice } from "../store/useStore";
 import NavBar from "../components/NavBar";
+import { getRealOrderResultAdvanced } from "../lib/timeCalcAdvanced";
+import { getAIExplain } from "../api/ai";
+
+const YEONGJU_STATION = {
+  lat: 36.8106,
+  lng: 128.6241,
+};
 
 export default function Cart() {
   const navigate = useNavigate();
-  const { cart, updateQuantity, getCartTotal, getServiceFee } = useStore();
 
-  const groupedByShop = cart.reduce<Record<string, typeof cart>>(
-    (acc, item) => {
-      const key = item.product.shopName;
-      if (!acc[key]) acc[key] = [];
-      acc[key].push(item);
-      return acc;
-    },
-    {},
-  );
+  const {
+    cart,
+    removeFromCart,
+    updateQuantity,
+    getCartTotal,
+    getServiceFee,
+    orderSchedule,
+  } = useStore();
 
-  const total = getCartTotal();
-  const fee = getServiceFee();
+  const [result, setResult] = useState<any>(null);
+  const [ai, setAi] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const cartTotal = getCartTotal();
+  const serviceFee = getServiceFee();
+  const finalTotal = cartTotal + serviceFee;
+
+  useEffect(() => {
+    if (!orderSchedule || cart.length === 0) return;
+
+    const run = async () => {
+      setLoading(true);
+
+      try {
+        // 🔥 실제 동선 기반 계산
+        const real = await getRealOrderResultAdvanced({
+          cart,
+          pickupTime: orderSchedule.pickupTime,
+          station: YEONGJU_STATION,
+        });
+
+        setResult(real);
+
+        // 🤖 AI 설명
+        const aiRes = await getAIExplain({
+          canOrder: real.canOrder,
+          moveMinutes: real.moveMinutes,
+          totalNeed: real.totalNeed,
+          deadline: real.deadline,
+          cart,
+        });
+
+        setAi(aiRes);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    run();
+  }, [cart, orderSchedule]);
+
+  const handlePayment = () => {
+    if (!result?.canOrder) return;
+    navigate("/payment");
+  };
 
   return (
     <>
       <NavBar title="장바구니" />
-      <div className="px-5 pt-4 pb-5">
-        <div className="mb-4 flex items-center gap-2 rounded-[10px] border border-purple-500/20 bg-purple-50 p-2.5">
-          <span className="text-sm">⏰</span>
-          <p className="text-xs text-purple-800">
-            <b>14:35</b>까지 주문 가능 · 남은 시간 <b>2시간 31분</b>
-          </p>
-        </div>
 
-        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-600">
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-600" />
-          상가업소 정보 → 여러 가게 묶음 주문
-        </span>
-
+      <div className="px-5 py-5">
         {cart.length === 0 ? (
-          <div className="py-16 text-center">
-            <p className="mb-3 text-3xl text-gray-300">🛒</p>
-            <p className="text-sm text-gray-400">장바구니가 비어있어요</p>
-            <button
-              onClick={() => navigate("/home")}
-              className="bg-primary mt-4 rounded-lg px-6 py-2 text-sm font-semibold text-white"
-            >
-              쇼핑하러 가기
-            </button>
-          </div>
+          <p className="text-center text-gray-400">장바구니가 비어있어요</p>
         ) : (
           <>
-            {Object.entries(groupedByShop).map(([shopName, items]) => (
-              <div key={shopName} className="mt-3">
-                <p className="text-dark mb-2 text-[13px] font-semibold">
-                  {shopName}
-                </p>
+            {/* 상품 리스트 */}
+            {cart.map((item) => (
+              <div key={item.product.id} className="mb-3 border-b pb-3">
+                <p className="font-bold">{item.product.name}</p>
+                <p className="text-sm text-gray-400">{item.product.shopName}</p>
 
-                {items.map((item) => (
-                  <div
-                    key={item.product.id}
-                    className="flex items-center justify-between border-b border-gray-100 py-2.5"
-                  >
-                    <div>
-                      <p className="text-dark text-[13px] font-medium">
-                        {item.product.name}
-                      </p>
-                      <p className="mt-0.5 text-xs text-gray-400">
-                        {item.quantity}개 ·{" "}
-                        {formatPrice(item.product.price * item.quantity)}원
-                      </p>
-                    </div>
+                <div className="mt-2 flex justify-between">
+                  <div>
+                    <button
+                      onClick={() =>
+                        updateQuantity(item.product.id, item.quantity - 1)
+                      }
+                    >
+                      -
+                    </button>
 
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.product.id, item.quantity - 1)
-                        }
-                        className="h-6 w-6 rounded-md border border-gray-300 bg-white text-sm"
-                      >
-                        -
-                      </button>
+                    <span className="mx-2">{item.quantity}</span>
 
-                      <span className="min-w-[16px] text-center text-[13px] font-semibold">
-                        {item.quantity}
-                      </span>
-
-                      <button
-                        onClick={() =>
-                          updateQuantity(item.product.id, item.quantity + 1)
-                        }
-                        className="h-6 w-6 rounded-md border border-gray-300 bg-white text-sm"
-                      >
-                        +
-                      </button>
-                    </div>
+                    <button
+                      onClick={() =>
+                        updateQuantity(item.product.id, item.quantity + 1)
+                      }
+                    >
+                      +
+                    </button>
                   </div>
-                ))}
+
+                  <button
+                    onClick={() => removeFromCart(item.product.id)}
+                    className="text-sm text-red-400"
+                  >
+                    삭제
+                  </button>
+                </div>
               </div>
             ))}
 
-            <button
-              onClick={() => navigate("/home")}
-              className="text-primary mt-3 w-full text-center text-[13px] font-semibold"
-            >
-              + 다른 가게 상품 추가
-            </button>
+            {/* 🔥 계산 결과 */}
+            {loading && (
+              <p className="mt-4 text-sm text-gray-400">동선 계산 중...</p>
+            )}
 
-            <div className="mt-5 rounded-xl border border-gray-200 bg-gray-50 p-3.5">
-              <div className="mb-1.5 flex justify-between text-[13px] text-gray-400">
-                <span>상품 금액</span>
-                <span>{formatPrice(total)}원</span>
+            {result && !loading && (
+              <div className="mt-5 rounded-2xl border bg-gray-50 p-4">
+                <p className="text-sm font-bold">자동 시간 계산</p>
+
+                <p className="mt-2 text-xs">
+                  현재: {new Date().toLocaleTimeString()}
+                </p>
+
+                <p className="text-xs">
+                  마감: {result.deadline.toLocaleTimeString()}
+                </p>
+
+                <p className="text-xs">
+                  이동 시간: {result.moveMinutes.toFixed(1)}분
+                </p>
+
+                <p className="text-xs">
+                  총 필요 시간: {result.totalNeed.toFixed(1)}분
+                </p>
+
+                <p className="text-xs">방문 매장: {cart.length}곳</p>
+
+                <p
+                  className={`mt-3 font-bold ${
+                    result.canOrder ? "text-green-600" : "text-red-500"
+                  }`}
+                >
+                  {result.canOrder ? "시간 내 수령 가능" : "시간 내 수령 불가"}
+                </p>
               </div>
-              <div className="mb-1.5 flex justify-between text-[13px] text-gray-400">
-                <span>픽업 서비스 수수료</span>
-                <span>{formatPrice(fee)}원</span>
+            )}
+
+            {/* 🤖 AI */}
+            {ai && (
+              <div className="mt-4 rounded-xl bg-gray-50 p-4">
+                <p className="font-bold">AI 분석</p>
+
+                <p className="mt-2 text-sm">{ai.message}</p>
+                <p className="text-xs text-gray-400">{ai.summary}</p>
               </div>
-              <div className="my-2.5 h-px bg-gray-200" />
-              <div className="text-dark flex justify-between text-base font-extrabold">
-                <span>총 결제금액</span>
-                <span>{formatPrice(total + fee)}원</span>
-              </div>
+            )}
+
+            {/* 결제 */}
+            <div className="mt-5">
+              <p className="font-bold">총 금액: {formatPrice(finalTotal)}원</p>
+
+              <button
+                disabled={!result?.canOrder}
+                onClick={handlePayment}
+                className={`mt-3 w-full rounded py-3 ${
+                  result?.canOrder
+                    ? "bg-primary text-white"
+                    : "bg-gray-300 text-gray-500"
+                }`}
+              >
+                결제하기
+              </button>
             </div>
-
-            <p className="mt-2.5 text-[11px] text-gray-400">
-              수령 장소: 영주역 픽업존 (1층 대합실 옆)
-            </p>
-
-            <button
-              onClick={() => navigate("/payment")}
-              className="bg-primary mt-4 w-full rounded-xl py-3.5 text-[15px] font-bold text-white"
-            >
-              {formatPrice(total + fee)}원 결제하기
-            </button>
           </>
         )}
       </div>

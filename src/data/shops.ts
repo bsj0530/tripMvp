@@ -1,102 +1,174 @@
-import type { Shop } from '../types'
+export type ScreenId =
+  | "splash"
+  | "signup"
+  | "login"
+  | "transport"
+  | "deadline"
+  | "home"
+  | "category"
+  | "products"
+  | "product"
+  | "cart"
+  | "payment"
+  | "tracking"
+  | "pickup";
+
+export interface Train {
+  id: string;
+  time: string;
+  type: string;
+  destination: string;
+  duration: string;
+}
+
+export interface Bus {
+  id: string;
+  time: string;
+  destination: string;
+  duration: string;
+  company: string;
+}
+
+export interface Shop {
+  id: string;
+  name: string;
+  category: string;
+  categoryId: string;
+  address: string;
+  phone?: string;
+
+  // 🔥 추가 (필수)
+  lat: number;
+  lng: number;
+
+  distanceFromStation?: number;
+  rating?: number;
+  isOpen?: boolean;
+  openTime?: string;
+  closeTime?: string;
+  image: string;
+}
+export interface Product {
+  id: string;
+  shopId: string;
+  shopName: string;
+  name: string;
+  price: number;
+  description: string;
+  image: string;
+  rating: number;
+  isPickupOnly: boolean;
+  category: string;
+  categoryId: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+}
+
+export interface CartItem {
+  product: Product;
+  quantity: number;
+}
+
+export interface Order {
+  id: string;
+  items: CartItem[];
+  totalAmount: number;
+  serviceFee: number;
+  status: OrderStatus;
+  createdAt: string;
+  pickupLocation: string;
+  transportTime: string;
+  transportType: "train" | "bus";
+}
+
+export type OrderStatus =
+  | "pending"
+  | "preparing"
+  | "ready"
+  | "delivering"
+  | "arrived"
+  | "completed";
+
+export interface TrackingStep {
+  step: number;
+  label: string;
+  sub: string;
+  done: boolean;
+  active: boolean;
+}
+
+export interface TransportSelection {
+  type: "train" | "bus";
+  id: string;
+  time: string;
+  destination: string;
+  deadlineTime: string;
+}
 
 export const mockShops: Shop[] = [
   {
-    id: 'S001',
-    name: '영주한우빵집',
-    category: '빵·디저트',
-    categoryId: 'bread',
-    address: '영주시 영주동 123-4',
-    distanceFromStation: 1.2,
-    rating: 4.8,
-    isOpen: true,
-    openTime: '08:00',
-    closeTime: '20:00',
-    image: '🍞',
-  },
-  {
-    id: 'S002',
-    name: '풍기인삼명가',
-    category: '인삼·건강',
-    categoryId: 'ginseng',
-    address: '영주시 풍기읍 인삼로 45',
-    distanceFromStation: 8.5,
-    rating: 4.9,
-    isOpen: true,
-    openTime: '09:00',
-    closeTime: '18:00',
-    image: '🌿',
-  },
-  {
-    id: 'S003',
-    name: '영주사과농원',
-    category: '과일',
-    categoryId: 'fruit',
-    address: '영주시 이산면 사과로 78',
-    distanceFromStation: 5.2,
-    rating: 4.7,
-    isOpen: true,
-    openTime: '07:00',
-    closeTime: '19:00',
-    image: '🍎',
-  },
-  {
-    id: 'S004',
-    name: '영주떡방앗간',
-    category: '빵·디저트',
-    categoryId: 'bread',
-    address: '영주시 영주동 456-7',
-    distanceFromStation: 0.8,
-    rating: 4.6,
-    isOpen: true,
-    openTime: '07:00',
-    closeTime: '19:00',
-    image: '🍡',
-  },
-  {
-    id: 'S005',
-    name: '소백산빵집',
-    category: '빵·디저트',
-    categoryId: 'bread',
-    address: '영주시 영주동 789-1',
-    distanceFromStation: 1.5,
-    rating: 4.5,
-    isOpen: true,
-    openTime: '08:00',
-    closeTime: '21:00',
-    image: '🥐',
-  },
-  {
-    id: 'S006',
-    name: '영주한우직판장',
-    category: '축산물',
-    categoryId: 'meat',
-    address: '영주시 영주동 234-5',
-    distanceFromStation: 2.0,
-    rating: 4.8,
-    isOpen: true,
-    openTime: '06:00',
-    closeTime: '18:00',
-    image: '🥩',
-  },
-  {
-    id: 'S007',
-    name: '소백산양조장',
-    category: '전통주',
-    categoryId: 'drink',
-    address: '영주시 순흥면 양조길 12',
-    distanceFromStation: 12.0,
-    rating: 4.7,
-    isOpen: true,
-    openTime: '10:00',
-    closeTime: '17:00',
-    image: '🍶',
-  },
-]
+    id: "yeongju-station",
+    categoryId: "all",
+    category: "전체보기",
+    name: "영주역 특산물 직판장",
+    phone: "054-632-7684",
+    address: "경상북도 영주시 선비로 64",
+    image: "🏪",
 
-// 향후 API 연결 시:
-// export async function fetchShops(categoryId?: string): Promise<Shop[]> {
-//   const params = categoryId ? `?category=${categoryId}` : ''
-//   const res = await fetch(`/api/shops${params}`)
-//   return res.json()
-// }
+    // 🔥 추가
+    lat: 36.8106,
+    lng: 128.6241,
+  },
+  {
+    id: "jung-donut",
+    categoryId: "bread",
+    category: "빵·디저트",
+    name: "정도너츠 본점",
+    phone: "054-636-0067",
+    address: "경상북도 영주시 풍기읍 동성로 94",
+    image: "🍩",
+
+    lat: 36.8215,
+    lng: 128.6195,
+  },
+  {
+    id: "yeongju-wine",
+    categoryId: "drink",
+    category: "전통주",
+    name: "(주)영주와인",
+    phone: "054-635-6533",
+    address: "경상북도 영주시 풍기읍 안풍로 307-12",
+    image: "🍷",
+
+    lat: 36.827,
+    lng: 128.6265,
+  },
+  {
+    id: "jeunette",
+    categoryId: "drink",
+    category: "전통주",
+    name: "쥬네뜨 공장",
+    phone: "054-633-5316",
+    address: "경상북도 영주시 단산면",
+    image: "🍇",
+
+    lat: 36.8,
+    lng: 128.61,
+  },
+  {
+    id: "punggi-market",
+    categoryId: "ginseng",
+    category: "인삼·건강",
+    name: "풍기온천농특산물직판장",
+    phone: "054-636-2921",
+    address: "경상북도 영주시 풍기읍 죽령로 1400",
+    image: "🌿",
+
+    lat: 36.8295,
+    lng: 128.615,
+  },
+];
