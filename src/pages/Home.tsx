@@ -1,10 +1,46 @@
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useStore } from "../store/useStore";
+import { useStore, formatPrice } from "../store/useStore";
 import { mockCategories } from "../data/categories";
 import NavBar from "../components/NavBar";
 
+type OrderItem = {
+  product: {
+    id: string;
+    name: string;
+    price: number;
+    image: string;
+    shopName: string;
+  };
+  quantity: number;
+};
+
+type CurrentOrder = {
+  id: string;
+  items: OrderItem[];
+  finalTotal: number;
+  estimate: {
+    canOrder: boolean;
+    message: string;
+    totalNeedMinutes: number;
+  };
+  orderSchedule?: {
+    departureTime: string;
+    pickupTime: string;
+    orderDeadlineTime: string;
+  };
+  selectedTransport?: {
+    destination: string;
+    time: string;
+    type: "train" | "bus";
+  };
+  createdAt: string;
+  pickupLocation: string;
+};
+
 export default function Home() {
   const navigate = useNavigate();
+  const [currentOrder, setCurrentOrder] = useState<CurrentOrder | null>(null);
 
   const {
     selectedTransport,
@@ -12,6 +48,21 @@ export default function Home() {
     selectedCategoryId,
     setSelectedCategoryId,
   } = useStore();
+
+  useEffect(() => {
+    const saved = localStorage.getItem("current-order");
+
+    if (!saved) {
+      setCurrentOrder(null);
+      return;
+    }
+
+    try {
+      setCurrentOrder(JSON.parse(saved));
+    } catch {
+      setCurrentOrder(null);
+    }
+  }, []);
 
   const handleCategoryClick = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
@@ -31,7 +82,48 @@ export default function Home() {
           귀가 시간에 맞춰 영주역에서 받을 수 있어요.
         </p>
 
-        {selectedTransport && orderSchedule && (
+        {currentOrder && (
+          <button
+            onClick={() => navigate("/tracking")}
+            className="border-primary/20 mt-4 w-full rounded-2xl border bg-red-50 p-4 text-left"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-primary text-xs font-semibold">내 주문</p>
+
+                <p className="text-dark mt-1 text-sm font-extrabold">
+                  {currentOrder.items.length}개 상품 ·{" "}
+                  {formatPrice(currentOrder.finalTotal)}원
+                </p>
+              </div>
+
+              <span className="text-primary text-xs font-bold">주문보기 →</span>
+            </div>
+
+            <div className="mt-3 rounded-xl bg-white/80 p-3">
+              <p className="text-[11px] text-gray-500">현재 상태</p>
+              <p className="text-dark mt-1 text-sm font-bold">주문 접수 완료</p>
+            </div>
+
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <div className="rounded-xl bg-white/80 p-3">
+                <p className="text-[11px] text-gray-500">추천 수령</p>
+                <p className="text-dark mt-1 text-sm font-extrabold">
+                  {currentOrder.orderSchedule?.pickupTime ?? "-"}
+                </p>
+              </div>
+
+              <div className="rounded-xl bg-white/80 p-3">
+                <p className="text-[11px] text-gray-500">수령 장소</p>
+                <p className="text-dark mt-1 text-sm font-extrabold">
+                  {currentOrder.pickupLocation || "영주역"}
+                </p>
+              </div>
+            </div>
+          </button>
+        )}
+
+        {!currentOrder && selectedTransport && orderSchedule && (
           <div className="mt-4 rounded-2xl border border-amber-400/20 bg-amber-50 p-4">
             <p className="text-xs font-semibold text-amber-800">내 귀가 일정</p>
 
@@ -58,7 +150,7 @@ export default function Home() {
           </div>
         )}
 
-        {!selectedTransport && (
+        {!selectedTransport && !currentOrder && (
           <button
             onClick={() => navigate("/transport")}
             className="mt-4 w-full rounded-2xl border border-gray-200 bg-gray-50 p-4 text-left"
