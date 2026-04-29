@@ -4,6 +4,12 @@ import NavBar from "../../components/NavBar";
 
 type Role = "tourist" | "rider" | "seller";
 
+const SELLER_SHOPS = [
+  { id: "shop-bread", name: "영주 사과빵집" },
+  { id: "shop-ricecake", name: "영주 전통떡집" },
+  { id: "shop-applewine", name: "소백산 사과주" },
+];
+
 export default function Signup() {
   const navigate = useNavigate();
 
@@ -18,6 +24,8 @@ export default function Signup() {
     agreeService: false,
     agreePrivacy: false,
     agreeMarketing: false,
+    shopId: SELLER_SHOPS[0].id,
+    shopName: SELLER_SHOPS[0].name,
   });
 
   const isActive =
@@ -34,6 +42,18 @@ export default function Signup() {
     setForm((prev) => ({
       ...prev,
       [key]: value,
+    }));
+  };
+
+  const handleRoleChange = (nextRole: Role) => {
+    setRole(nextRole);
+  };
+
+  const handleShopSelect = (shop: { id: string; name: string }) => {
+    setForm((prev) => ({
+      ...prev,
+      shopId: shop.id,
+      shopName: shop.name,
     }));
   };
 
@@ -79,6 +99,10 @@ export default function Signup() {
         password: form.password,
         agreeMarketing: form.agreeMarketing,
         isLoggedIn: false,
+
+        // 판매점 계정일 때만 매장 정보 저장
+        shopId: role === "seller" ? form.shopId : undefined,
+        shopName: role === "seller" ? form.shopName : undefined,
       }),
     );
 
@@ -110,7 +134,7 @@ export default function Signup() {
               <button
                 key={item.value}
                 type="button"
-                onClick={() => setRole(item.value as Role)}
+                onClick={() => handleRoleChange(item.value as Role)}
                 className={`rounded-xl border py-3 text-sm font-bold ${
                   role === item.value
                     ? "border-primary bg-primary text-white"
@@ -123,10 +147,39 @@ export default function Signup() {
           </div>
         </div>
 
+        {role === "seller" && (
+          <div className="mb-5">
+            <label className="mb-2 block text-xs font-semibold text-gray-500">
+              운영 매장
+            </label>
+
+            <div className="flex flex-col gap-2">
+              {SELLER_SHOPS.map((shop) => (
+                <button
+                  key={shop.id}
+                  type="button"
+                  onClick={() => handleShopSelect(shop)}
+                  className={`rounded-xl border px-4 py-3 text-left text-sm font-bold ${
+                    form.shopId === shop.id
+                      ? "border-primary bg-primary text-white"
+                      : "border-gray-200 bg-gray-50 text-gray-400"
+                  }`}
+                >
+                  {shop.name}
+                </button>
+              ))}
+            </div>
+
+            <p className="mt-2 text-[11px] text-gray-400">
+              판매점 계정은 선택한 매장의 주문만 확인할 수 있습니다.
+            </p>
+          </div>
+        )}
+
         <div className="flex flex-col gap-3.5">
           <InputField
             label="이름"
-            placeholder="홍길동"
+            placeholder={role === "seller" ? "대표자 이름" : "홍길동"}
             value={form.name}
             onChange={(value) => handleChange("name", value)}
           />
