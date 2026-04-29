@@ -1,4 +1,3 @@
-const KAKAO_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
 const cache = new Map<string, number>();
 
 type Point = {
@@ -10,12 +9,18 @@ function keyOf(a: Point, b: Point) {
   return `${a.lat},${a.lng}->${b.lat},${b.lng}`;
 }
 
-export async function getRouteTime(points: Point[]) {
-  if (!KAKAO_KEY) {
-    console.error("VITE_KAKAO_REST_KEY가 .env에 없습니다.");
-    return 0;
-  }
+async function safeJson(res: Response) {
+  const text = await res.text();
 
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error("JSON이 아닌 응답:", text.slice(0, 300));
+    throw new Error("API 응답이 JSON이 아닙니다.");
+  }
+}
+
+export async function getRouteTime(points: Point[]) {
   let totalSec = 0;
 
   for (let i = 0; i < points.length - 1; i++) {
@@ -31,21 +36,21 @@ export async function getRouteTime(points: Point[]) {
       continue;
     }
 
-    const url = `https://apis-navi.kakaomobility.com/v1/directions?origin=${o.lng},${o.lat}&destination=${d.lng},${d.lat}`;
+    const query = new URLSearchParams({
+      originLng: String(o.lng),
+      originLat: String(o.lat),
+      destinationLng: String(d.lng),
+      destinationLat: String(d.lat),
+    });
 
     try {
-      const res = await fetch(url, {
-        headers: {
-          Authorization: `KakaoAK ${KAKAO_KEY}`,
-        },
-      });
+      const res = await fetch(`/api/kakao-route?${query}`);
+      const data = await safeJson(res);
 
       if (!res.ok) {
-        console.error("카카오 내비 API 실패:", res.status, await res.text());
+        console.error("카카오 내비 API 실패:", data);
         continue;
       }
-
-      const data = await res.json();
 
       const sec = data?.routes?.[0]?.summary?.duration ?? 0;
 

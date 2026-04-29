@@ -5,21 +5,27 @@ export type GoodRestaurant = {
   ADRES: string;
 };
 
-const SERVICE_KEY = import.meta.env.VITE_GOOD_RESTAURANT_SERVICE_KEY;
-const BASE_URL = import.meta.env.VITE_GOOD_RESTAURANT_BASE_URL;
-
-export async function getGoodRestaurants(pageNo = 1, numOfRows = 100) {
-  const url = `${BASE_URL}/getGoodRestaurantStatus?serviceKey=${SERVICE_KEY}&pageNo=${pageNo}&numOfRows=${numOfRows}&_type=json`;
-
-  const res = await fetch(url);
+async function safeJson(res: Response) {
   const text = await res.text();
 
+  try {
+    return JSON.parse(text);
+  } catch {
+    console.error("맛집 API JSON 아님:", text.slice(0, 300));
+    throw new Error("영주맛집 API 응답이 JSON이 아닙니다.");
+  }
+}
+
+export async function getGoodRestaurants(pageNo = 1, numOfRows = 100) {
+  const url = `/api/good-restaurant?pageNo=${pageNo}&numOfRows=${numOfRows}`;
+
+  const res = await fetch(url);
+  const data = await safeJson(res);
+
   if (!res.ok) {
-    console.error("맛집 API 응답 원문:", text);
+    console.error("맛집 API 응답:", data);
     throw new Error(`영주맛집 API 요청 실패: ${res.status}`);
   }
-
-  const data = JSON.parse(text);
 
   const body = data?.response?.body;
   const item = body?.items?.item;
