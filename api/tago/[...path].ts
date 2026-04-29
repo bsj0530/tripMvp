@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from "@vercel/node";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const serviceKey = process.env.TAGO_SERVICE_KEY;
+    const serviceKey = process.env.VITE_TAGO_SERVICE_KEY;
 
     if (!serviceKey) {
       return res.status(500).json({
