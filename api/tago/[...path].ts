@@ -17,13 +17,31 @@ function getPathFromRequest(req: VercelRequest) {
   return pathname.replace(/^\/api\/tago\/?/, "");
 }
 
+function appendQueryParam(
+  query: URLSearchParams,
+  key: string,
+  value: string | string[] | undefined,
+) {
+  if (value === undefined) return;
+
+  if (Array.isArray(value)) {
+    value.forEach((v) => query.append(key, String(v)));
+    return;
+  }
+
+  query.set(key, String(value));
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const serviceKey = process.env.TAGO_SERVICE_KEY;
+    const serviceKey =
+      process.env.TAGO_SERVICE_KEY ?? process.env.VITE_TAGO_SERVICE_KEY;
 
     if (!serviceKey) {
       return res.status(500).json({
         error: "TAGO_SERVICE_KEY가 설정되지 않았습니다.",
+        hint: "Vercel Environment Variables에 TAGO_SERVICE_KEY 또는 VITE_TAGO_SERVICE_KEY를 추가하고 Redeploy 해주세요.",
+        envKeys: Object.keys(process.env).filter((key) => key.includes("TAGO")),
       });
     }
 
@@ -41,15 +59,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     Object.entries(req.query).forEach(([key, value]) => {
       if (key === "path") return;
+      if (key === "serviceKey") return;
 
-      if (Array.isArray(value)) {
-        value.forEach((v) => query.append(key, String(v)));
-        return;
-      }
-
-      if (value !== undefined) {
-        query.set(key, String(value));
-      }
+      appendQueryParam(query, key, value as string | string[] | undefined);
     });
 
     query.set("serviceKey", serviceKey);
@@ -66,6 +78,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   } catch (error) {
     return res.status(500).json({
       error: "시외버스 API 요청 중 오류가 발생했습니다.",
+      message: error instanceof Error ? error.message : String(error),
     });
   }
 }
