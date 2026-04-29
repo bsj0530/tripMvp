@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
-import { useStore } from "../store/useStore";
-import NavBar from "../components/NavBar";
+import { useStore } from "../../store/useStore";
+import NavBar from "../../components/NavBar";
 
 export default function Pickup() {
   const navigate = useNavigate();

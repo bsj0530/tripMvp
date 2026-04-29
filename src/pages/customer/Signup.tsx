@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import NavBar from "../components/NavBar";
+import NavBar from "../../components/NavBar";
 
 type Role = "tourist" | "rider" | "seller";
 
@@ -21,7 +21,6 @@ export default function Signup() {
   });
 
   const isActive =
-    role ||
     form.name.trim() ||
     form.phone.trim() ||
     form.authCode.trim() ||
@@ -48,6 +47,11 @@ export default function Signup() {
 
     if (!form.phone.trim()) {
       alert("휴대폰 번호를 입력해주세요.");
+      return;
+    }
+
+    if (!form.authCode.trim()) {
+      alert("인증번호를 입력해주세요.");
       return;
     }
 
@@ -199,6 +203,14 @@ export default function Signup() {
           }`}
         >
           가입 완료
+        </button>
+
+        <button
+          type="button"
+          onClick={() => navigate("/login")}
+          className="mt-4 w-full text-center text-xs font-semibold text-gray-400"
+        >
+          이미 계정이 있으신가요? 로그인
         </button>
       </div>
     </>

@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import { useStore } from "../store/useStore";
-import { mockShops } from "../data/shops";
-import { mockCategories } from "../data/categories";
-import { CATEGORY_KEYWORDS } from "../data/categoryKeywords";
-import NavBar from "../components/NavBar";
+import { useStore } from "../../store/useStore";
+import { mockShops } from "../../data/shops";
+import { mockCategories } from "../../data/categories";
+import { CATEGORY_KEYWORDS } from "../../data/categoryKeywords";
+import NavBar from "../../components/NavBar";
 import {
   getCoordsByAddress,
   searchPlaces,
   type Coord,
   type KakaoPlace,
-} from "../api/kakaoLocal";
-import { getDistanceKm } from "../lib/distance";
-import type { Shop } from "../types";
+} from "../../api/kakaoLocal";
+import { getDistanceKm } from "../../lib/distance";
+import type { Shop } from "../../types";
 
 const YEONGJU_STATION = {
   lat: 36.8106,

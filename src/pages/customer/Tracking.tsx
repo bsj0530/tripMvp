@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router";
-import NavBar from "../components/NavBar";
-import { formatPrice } from "../store/useStore";
-import { sortByNearest } from "../lib/routeSort";
+import NavBar from "../../components/NavBar";
+import { formatPrice } from "../../store/useStore";
+import { sortByNearest } from "../../lib/routeSort";
 
 const YEONGJU_STATION = {
   lat: 36.8106,

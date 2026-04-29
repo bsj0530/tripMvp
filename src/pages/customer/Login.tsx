@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
-import NavBar from "../components/NavBar";
+import NavBar from "../../components/NavBar";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -22,7 +22,16 @@ export default function Login() {
       return;
     }
 
-    const user = JSON.parse(savedUser);
+    let user;
+
+    try {
+      user = JSON.parse(savedUser);
+    } catch {
+      alert("회원 정보가 올바르지 않습니다. 다시 회원가입 해주세요.");
+      localStorage.removeItem("user");
+      navigate("/signup");
+      return;
+    }
 
     if (user.phone !== form.phone) {
       alert("휴대폰 번호가 일치하지 않습니다.");
@@ -34,13 +43,12 @@ export default function Login() {
       return;
     }
 
-    localStorage.setItem(
-      "user",
-      JSON.stringify({
-        ...user,
-        isLoggedIn: true,
-      }),
-    );
+    const loggedInUser = {
+      ...user,
+      isLoggedIn: true,
+    };
+
+    localStorage.setItem("user", JSON.stringify(loggedInUser));
 
     if (user.role === "seller") {
       navigate("/seller");
@@ -68,6 +76,7 @@ export default function Login() {
             <label className="mb-1.5 block text-xs font-semibold text-gray-500">
               휴대폰 번호
             </label>
+
             <input
               type="tel"
               placeholder="010-1234-5678"
@@ -86,6 +95,7 @@ export default function Login() {
             <label className="mb-1.5 block text-xs font-semibold text-gray-500">
               비밀번호
             </label>
+
             <input
               type="password"
               placeholder="비밀번호 입력"

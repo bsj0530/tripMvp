@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useStore, formatPrice } from "../store/useStore";
-import { mockCategories } from "../data/categories";
-import NavBar from "../components/NavBar";
+import { useStore, formatPrice } from "../../store/useStore";
+import { mockCategories } from "../../data/categories";
+import NavBar from "../../components/NavBar";
 
 type OrderItem = {
   product: {

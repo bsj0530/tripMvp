@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router";
-import { useStore, formatPrice } from "../store/useStore";
-import NavBar from "../components/NavBar";
+import { useStore, formatPrice } from "../../store/useStore";
+import NavBar from "../../components/NavBar";
 
 export default function Payment() {
   const navigate = useNavigate();

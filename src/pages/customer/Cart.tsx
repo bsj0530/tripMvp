@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router";
-import { useStore, formatPrice } from "../store/useStore";
-import NavBar from "../components/NavBar";
-import { getRealOrderResultAdvanced } from "../lib/timeCalcAdvanced";
-import { getAIExplain } from "../api/ai";
+import { useStore, formatPrice } from "../../store/useStore";
+import NavBar from "../../components/NavBar";
+import { getRealOrderResultAdvanced } from "../../lib/timeCalcAdvanced";
+import { getAIExplain } from "../../api/ai";
 
 const YEONGJU_STATION = {
   lat: 36.8106,

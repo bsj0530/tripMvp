@@ -1,18 +1,21 @@
 import { Navigate, Route, Routes } from "react-router";
 import GlobalLayout from "./components/layout/global-layout";
 
-import Splash from "./pages/Splash";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Home from "./pages/Home";
-import Category from "./pages/Category";
-import Products from "./pages/Products";
-import ProductDetail from "./pages/ProductDetail";
-import Cart from "./pages/Cart";
-import Payment from "./pages/Payment";
-import Tracking from "./pages/Tracking";
-import Pickup from "./pages/Pickup";
-import Transport from "./pages/Transport";
+import Splash from "./pages/customer/Splash";
+import Login from "./pages/customer/Login";
+import Signup from "./pages/customer/Signup";
+import Home from "./pages/customer/Home";
+import Category from "./pages/customer/Category";
+import Products from "./pages/customer/Products";
+import ProductDetail from "./pages/customer/ProductDetail";
+import Cart from "./pages/customer/Cart";
+import Payment from "./pages/customer/Payment";
+import Tracking from "./pages/customer/Tracking";
+import Pickup from "./pages/customer/Pickup";
+import Transport from "./pages/customer/Transport";
+
+import SellerOrders from "./pages/seller/SellerOrders";
+import RiderDelivery from "./pages/rider/RiderDelivery";
 
 export default function RootRoute() {
   return (
@@ -31,6 +34,9 @@ export default function RootRoute() {
         <Route path="/payment" element={<Payment />} />
         <Route path="/tracking" element={<Tracking />} />
         <Route path="/pickup" element={<Pickup />} />
+
+        <Route path="/seller" element={<SellerOrders />} />
+        <Route path="/rider" element={<RiderDelivery />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

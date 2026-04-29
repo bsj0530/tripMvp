@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router";
-import { useStore, formatPrice } from "../store/useStore";
-import { getProductsByShop } from "../data/products";
-import NavBar from "../components/NavBar";
+import { useStore, formatPrice } from "../../store/useStore";
+import { getProductsByShop } from "../../data/products";
+import NavBar from "../../components/NavBar";
 
 export default function Products() {
   const navigate = useNavigate();

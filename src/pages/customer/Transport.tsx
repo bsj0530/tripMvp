@@ -5,10 +5,10 @@ import {
   calculateDeadline,
   calculatePickupTime,
   calculateOrderDeadlineTime,
-} from "../store/useStore";
-import NavBar from "../components/NavBar";
-import { yeongjuTrains } from "../data/yeongjuTrains";
-import { getSuburbsBusInfo, type BusItem } from "../api/busApi";
+} from "../../store/useStore";
+import NavBar from "../../components/NavBar";
+import { yeongjuTrains } from "../../data/yeongjuTrains";
+import { getSuburbsBusInfo, type BusItem } from "../../api/busApi";
 
 export default function Transport() {
   const navigate = useNavigate();
