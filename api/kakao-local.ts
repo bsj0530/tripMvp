@@ -4,8 +4,8 @@ const KAKAO_LOCAL_BASE_URL = "https://dapi.kakao.com/v2/local";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
-    const serviceKey = process.env.KAKAO_REST_API_KEY;
-
+    const serviceKey =
+      process.env.KAKAO_REST_API_KEY || process.env.VITE_KAKAO_REST_API_KEY;
     if (!serviceKey) {
       return res.status(500).json({
         error: "KAKAO_REST_API_KEY가 설정되지 않았습니다.",
