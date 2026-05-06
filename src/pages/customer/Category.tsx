@@ -203,7 +203,7 @@ export default function Category() {
       `,
     });
 
-    displayShops.forEach((shop, index) => {
+    displayShops.forEach((shop) => {
       const shopPosition = new kakao.maps.LatLng(shop.lat, shop.lng);
       bounds.extend(shopPosition);
 
@@ -229,7 +229,7 @@ export default function Category() {
             white-space:nowrap;
             box-shadow:0 1px 6px rgba(0,0,0,0.1);
           ">
-            ${index + 1}. ${shop.name} · ${
+            ${shop.name} · ${
               shop.distanceFromStation !== undefined
                 ? `${shop.distanceFromStation.toFixed(1)}km`
                 : "-"
@@ -357,24 +357,34 @@ export default function Category() {
                 <button
                   key={shop.id}
                   onClick={() => handleShopClick(shop)}
-                  className="flex items-center gap-3 border-b border-gray-100 py-2.5 text-left"
+                  className="flex gap-3 border-b border-gray-100 py-3 text-left"
                 >
-                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gray-100 text-[22px]">
+                  <div className="flex h-[60px] w-[60px] flex-shrink-0 items-center justify-center rounded-[10px] bg-gray-100 text-[28px]">
                     {shop.image}
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-dark truncate text-sm font-semibold">
-                        {shop.name}
-                      </p>
+                    <p className="text-dark truncate text-sm font-semibold">
+                      {shop.name}
+                    </p>
 
-                      <p className="shrink-0 text-[12px] font-bold text-amber-600">
-                        {shop.distanceFromStation !== undefined
-                          ? `${shop.distanceFromStation.toFixed(1)}km`
-                          : "-"}
-                      </p>
-                    </div>
+                    <p className="mt-0.5 line-clamp-1 text-[11px] text-gray-400">
+                      {shop.category}
+                    </p>
+
+                    <p className="mt-1 text-[11px] text-amber-500">
+                      {shop.phone || "전화번호 없음"}
+                    </p>
+
+                    <p className="mt-1 line-clamp-1 text-[11px] text-gray-400">
+                      {shop.address}
+                    </p>
+
+                    <p className="text-primary mt-1 text-[11px] font-semibold">
+                      {shop.distanceFromStation !== undefined
+                        ? `영주역에서 ${shop.distanceFromStation.toFixed(1)}km`
+                        : "거리 정보 없음"}
+                    </p>
                   </div>
                 </button>
               ))}
