@@ -3,14 +3,8 @@ import { useNavigate } from "react-router";
 import { useStore } from "../../store/useStore";
 import { mockShops } from "../../data/shops";
 import { mockCategories } from "../../data/categories";
-import { CATEGORY_KEYWORDS } from "../../data/categoryKeywords";
 import NavBar from "../../components/NavBar";
-import {
-  getCoordsByAddress,
-  searchPlaces,
-  type Coord,
-  type KakaoPlace,
-} from "../../api/kakaoLocal";
+import { getCoordsByAddress, type Coord } from "../../api/kakaoLocal";
 import { getDistanceKm } from "../../lib/distance";
 import type { Shop } from "../../types";
 
@@ -35,26 +29,15 @@ type DisplayShop = {
   phone?: string;
   address: string;
   image: string;
-
   lat: number;
   lng: number;
-
   distanceFromStation?: number;
-  source: "mock" | "kakao";
-};
-
-const CATEGORY_IMAGE: Record<string, string> = {
-  bread: "🍞",
-  ginseng: "🌿",
-  fruit: "🍎",
-  meat: "🥩",
-  drink: "🍶",
-  processed: "🧴",
-  gift: "🎁",
-  all: "📦",
 };
 
 function convertMockShop(shop: Shop): DisplayShop {
+  const lat = shop.lat ?? YEONGJU_STATION.lat;
+  const lng = shop.lng ?? YEONGJU_STATION.lng;
+
   return {
     id: shop.id,
     name: shop.name,
@@ -63,37 +46,11 @@ function convertMockShop(shop: Shop): DisplayShop {
     phone: shop.phone,
     address: shop.address,
     image: shop.image,
-    lat: shop.lat ?? YEONGJU_STATION.lat,
-    lng: shop.lng ?? YEONGJU_STATION.lng,
-    distanceFromStation: shop.distanceFromStation,
-    source: "mock",
-  };
-}
-
-function convertKakaoPlace(
-  place: KakaoPlace,
-  selectedCategoryId: string,
-): DisplayShop {
-  const lat = Number(place.y);
-  const lng = Number(place.x);
-
-  return {
-    id: `kakao-${place.id}`,
-    name: place.place_name,
-    category: place.category_name || "카카오 장소",
-    categoryId: selectedCategoryId,
-    phone: place.phone || "전화번호 없음",
-    address: place.road_address_name || place.address_name,
-    image: CATEGORY_IMAGE[selectedCategoryId] || "📍",
     lat,
     lng,
-    distanceFromStation: getDistanceKm(
-      YEONGJU_STATION.lat,
-      YEONGJU_STATION.lng,
-      lat,
-      lng,
-    ),
-    source: "kakao",
+    distanceFromStation:
+      shop.distanceFromStation ??
+      getDistanceKm(YEONGJU_STATION.lat, YEONGJU_STATION.lng, lat, lng),
   };
 }
 
@@ -136,8 +93,10 @@ export default function Category() {
           localStorage.getItem("coords-cache") || "{}",
         );
 
-        const mockWithDistance = await Promise.all(
+        const mockOnlyShops = await Promise.all(
           mockFilteredShops.map(async (shop): Promise<DisplayShop> => {
+            const fallbackShop = convertMockShop(shop);
+
             let coords: Coord | null = cache[shop.address] ?? null;
 
             if (!coords) {
@@ -148,14 +107,12 @@ export default function Category() {
               }
             }
 
-            const converted = convertMockShop(shop);
-
             if (!coords) {
-              return converted;
+              return fallbackShop;
             }
 
             return {
-              ...converted,
+              ...fallbackShop,
               lat: coords.lat,
               lng: coords.lng,
               distanceFromStation: getDistanceKm(
@@ -170,36 +127,7 @@ export default function Category() {
 
         localStorage.setItem("coords-cache", JSON.stringify(cache));
 
-        const keywords =
-          CATEGORY_KEYWORDS[safeCategoryId] ?? CATEGORY_KEYWORDS.all;
-
-        const kakaoResults = await Promise.all(
-          keywords.map((keyword) => searchPlaces(keyword)),
-        );
-
-        const kakaoPlaces = kakaoResults.flat();
-
-        const uniqueKakaoPlaces = Array.from(
-          new Map(kakaoPlaces.map((place) => [place.id, place])).values(),
-        );
-
-        const kakaoDisplayShops = uniqueKakaoPlaces
-          .map((place) => convertKakaoPlace(place, safeCategoryId))
-          .filter((shop) => shop.distanceFromStation !== undefined)
-          .filter((shop) => (shop.distanceFromStation ?? 9999) < 30);
-
-        const merged = [...mockWithDistance, ...kakaoDisplayShops];
-
-        const uniqueMerged = Array.from(
-          new Map(
-            merged.map((shop) => [
-              `${shop.name}-${shop.address}`.replace(/\s/g, ""),
-              shop,
-            ]),
-          ).values(),
-        );
-
-        const sorted = uniqueMerged.sort(
+        const sorted = mockOnlyShops.sort(
           (a, b) =>
             (a.distanceFromStation ?? 9999) - (b.distanceFromStation ?? 9999),
         );
@@ -207,7 +135,15 @@ export default function Category() {
         setDisplayShops(sorted);
       } catch (error) {
         console.error("판매처 로딩 실패:", error);
-        setDisplayShops(mockFilteredShops.map((shop) => convertMockShop(shop)));
+
+        const fallback = mockFilteredShops
+          .map((shop) => convertMockShop(shop))
+          .sort(
+            (a, b) =>
+              (a.distanceFromStation ?? 9999) - (b.distanceFromStation ?? 9999),
+          );
+
+        setDisplayShops(fallback);
       } finally {
         setLoading(false);
       }
@@ -220,7 +156,11 @@ export default function Category() {
     if (!mapRef.current) return;
     if (loading) return;
     if (displayShops.length === 0) return;
-    if (!window.kakao?.maps) return;
+
+    if (!window.kakao?.maps) {
+      console.error("카카오맵 SDK가 로드되지 않았습니다.");
+      return;
+    }
 
     const kakao = window.kakao;
 
@@ -263,9 +203,7 @@ export default function Category() {
       `,
     });
 
-    const shopsToShow = displayShops.slice(0, 8);
-
-    shopsToShow.forEach((shop, index) => {
+    displayShops.forEach((shop, index) => {
       const shopPosition = new kakao.maps.LatLng(shop.lat, shop.lng);
       bounds.extend(shopPosition);
 
@@ -317,7 +255,7 @@ export default function Category() {
         path: [stationPosition, nearestPosition],
         strokeWeight: 4,
         strokeColor: "#f59e0b",
-        strokeOpacity: 0.8,
+        strokeOpacity: 0.85,
         strokeStyle: "solid",
       });
 
@@ -394,7 +332,7 @@ export default function Category() {
         )}
 
         <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-600">
-          영주 특산물 판매처 + 카카오 장소 검색
+          영주 특산물 판매처
         </span>
 
         {loading && (
@@ -418,7 +356,7 @@ export default function Category() {
                     영주역 기준 판매처 위치
                   </p>
                   <p className="mt-0.5 text-[11px] text-gray-400">
-                    가까운 판매처부터 지도에 표시됩니다.
+                    등록된 판매처를 카카오맵에 표시합니다.
                   </p>
                 </div>
 
@@ -433,7 +371,7 @@ export default function Category() {
                 <span className="font-semibold text-gray-500">🚉 영주역</span>
 
                 <span className="text-gray-400">
-                  상위 {Math.min(displayShops.length, 8)}개 판매처 표시
+                  총 {displayShops.length}개 판매처 표시
                 </span>
               </div>
             </div>
@@ -450,17 +388,9 @@ export default function Category() {
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <div className="flex items-center gap-1">
-                      <p className="text-dark truncate text-sm font-semibold">
-                        {shop.name}
-                      </p>
-
-                      {shop.source === "kakao" && (
-                        <span className="rounded-full bg-purple-50 px-1.5 py-0.5 text-[9px] font-semibold text-purple-500">
-                          Kakao
-                        </span>
-                      )}
-                    </div>
+                    <p className="text-dark truncate text-sm font-semibold">
+                      {shop.name}
+                    </p>
 
                     <p className="mt-0.5 line-clamp-1 text-[11px] text-gray-400">
                       {shop.category}
