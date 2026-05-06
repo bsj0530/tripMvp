@@ -189,16 +189,16 @@ export default function Category() {
       yAnchor: 1.8,
       content: `
         <div style="
-          padding:6px 10px;
+          padding:5px 9px;
           border-radius:999px;
           background:#111827;
           color:white;
-          font-size:12px;
+          font-size:11px;
           font-weight:700;
           white-space:nowrap;
           box-shadow:0 2px 8px rgba(0,0,0,0.18);
         ">
-          🚉 영주역
+          영주역
         </div>
       `,
     });
@@ -219,24 +219,21 @@ export default function Category() {
         yAnchor: 2.2,
         content: `
           <div style="
-            padding:6px 9px;
-            border-radius:10px;
+            padding:5px 8px;
+            border-radius:999px;
             background:white;
-            border:1px solid #f59e0b;
+            border:1px solid rgba(245, 158, 11, 0.6);
             color:#92400e;
             font-size:11px;
             font-weight:700;
             white-space:nowrap;
-            box-shadow:0 2px 8px rgba(0,0,0,0.12);
+            box-shadow:0 1px 6px rgba(0,0,0,0.1);
           ">
-            ${index + 1}. ${shop.name}<br/>
-            <span style="color:#f59e0b;">
-              영주역에서 ${
-                shop.distanceFromStation !== undefined
-                  ? `${shop.distanceFromStation.toFixed(1)}km`
-                  : "거리 정보 없음"
-              }
-            </span>
+            ${index + 1}. ${shop.name} · ${
+              shop.distanceFromStation !== undefined
+                ? `${shop.distanceFromStation.toFixed(1)}km`
+                : "-"
+            }
           </div>
         `,
       });
@@ -253,9 +250,9 @@ export default function Category() {
       new kakao.maps.Polyline({
         map,
         path: [stationPosition, nearestPosition],
-        strokeWeight: 4,
+        strokeWeight: 3,
         strokeColor: "#f59e0b",
-        strokeOpacity: 0.85,
+        strokeOpacity: 0.8,
         strokeStyle: "solid",
       });
 
@@ -267,20 +264,16 @@ export default function Category() {
         position: new kakao.maps.LatLng(midLat, midLng),
         content: `
           <div style="
-            padding:5px 9px;
+            padding:4px 8px;
             border-radius:999px;
             background:#f59e0b;
             color:white;
-            font-size:11px;
+            font-size:10px;
             font-weight:800;
             white-space:nowrap;
-            box-shadow:0 2px 8px rgba(0,0,0,0.16);
+            box-shadow:0 2px 8px rgba(0,0,0,0.14);
           ">
-            가장 가까운 판매처 ${
-              nearestShop.distanceFromStation !== undefined
-                ? `${nearestShop.distanceFromStation.toFixed(1)}km`
-                : ""
-            }
+            ${nearestShop.distanceFromStation?.toFixed(1)}km
           </div>
         `,
       });
@@ -331,10 +324,6 @@ export default function Category() {
           </div>
         )}
 
-        <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/20 bg-amber-50 px-2.5 py-1 text-[10px] font-semibold text-amber-600">
-          영주 특산물 판매처
-        </span>
-
         {loading && (
           <div className="py-10 text-center text-sm text-gray-400">
             판매처를 불러오는 중...
@@ -349,31 +338,18 @@ export default function Category() {
 
         {!loading && displayShops.length > 0 && (
           <>
-            <div className="mt-3 overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-              <div className="flex items-center justify-between px-4 py-3">
-                <div>
-                  <p className="text-sm font-bold text-gray-900">
-                    영주역 기준 판매처 위치
-                  </p>
-                  <p className="mt-0.5 text-[11px] text-gray-400">
-                    등록된 판매처를 카카오맵에 표시합니다.
-                  </p>
-                </div>
+            <div className="overflow-hidden rounded-2xl border border-gray-100/60 bg-white">
+              <div className="flex items-center justify-between px-4 py-2.5">
+                <p className="text-sm font-bold text-gray-900">
+                  영주역 기준 위치
+                </p>
 
-                <div className="rounded-full bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-600">
+                <p className="text-[11px] font-semibold text-amber-600">
                   최근접 {displayShops[0]?.distanceFromStation?.toFixed(1)}km
-                </div>
+                </p>
               </div>
 
-              <div ref={mapRef} className="h-[260px] w-full bg-gray-100" />
-
-              <div className="flex items-center justify-between px-4 py-3 text-[11px]">
-                <span className="font-semibold text-gray-500">🚉 영주역</span>
-
-                <span className="text-gray-400">
-                  총 {displayShops.length}개 판매처 표시
-                </span>
-              </div>
+              <div ref={mapRef} className="h-[340px] w-full bg-gray-100" />
             </div>
 
             <div className="mt-3 flex flex-col">
@@ -381,34 +357,24 @@ export default function Category() {
                 <button
                   key={shop.id}
                   onClick={() => handleShopClick(shop)}
-                  className="flex gap-3 border-b border-gray-100 py-3 text-left"
+                  className="flex items-center gap-3 border-b border-gray-100 py-2.5 text-left"
                 >
-                  <div className="flex h-[60px] w-[60px] flex-shrink-0 items-center justify-center rounded-[10px] bg-gray-100 text-[28px]">
+                  <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-gray-100 text-[22px]">
                     {shop.image}
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <p className="text-dark truncate text-sm font-semibold">
-                      {shop.name}
-                    </p>
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-dark truncate text-sm font-semibold">
+                        {shop.name}
+                      </p>
 
-                    <p className="mt-0.5 line-clamp-1 text-[11px] text-gray-400">
-                      {shop.category}
-                    </p>
-
-                    <p className="mt-1 text-[11px] text-amber-500">
-                      {shop.phone || "전화번호 없음"}
-                    </p>
-
-                    <p className="mt-1 line-clamp-1 text-[11px] text-gray-400">
-                      {shop.address}
-                    </p>
-
-                    <p className="text-primary mt-1 text-[11px] font-semibold">
-                      {shop.distanceFromStation !== undefined
-                        ? `영주역에서 ${shop.distanceFromStation.toFixed(1)}km`
-                        : "거리 정보 없음"}
-                    </p>
+                      <p className="shrink-0 text-[12px] font-bold text-amber-600">
+                        {shop.distanceFromStation !== undefined
+                          ? `${shop.distanceFromStation.toFixed(1)}km`
+                          : "-"}
+                      </p>
+                    </div>
                   </div>
                 </button>
               ))}
