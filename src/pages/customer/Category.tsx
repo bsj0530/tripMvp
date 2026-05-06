@@ -343,10 +343,6 @@ export default function Category() {
                 <p className="text-sm font-bold text-gray-900">
                   영주역 기준 위치
                 </p>
-
-                <p className="text-[11px] font-semibold text-amber-600">
-                  최근접 {displayShops[0]?.distanceFromStation?.toFixed(1)}km
-                </p>
               </div>
 
               <div ref={mapRef} className="h-[340px] w-full bg-gray-100" />
